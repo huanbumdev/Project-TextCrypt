@@ -28,24 +28,25 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 #include "TextCrypt.h"
 #include "SHA512.h"
 #define Encrypting true
 #define Decrypting false
-#define NumberOfTheEncryptable 256
+#define NumberOfTheEncryptable 65536
 #define KeyAdjustment 16
 #define TAB 9
 #define FirstCharacter 0
-#define LastCharacter 255
+#define LastCharacter 65535
 using namespace std;
 //Private Functions
 void TextCrypt::SetParagraphs(){
-	string Paragraph;
+	wstring Paragraph;
 	while (!(Paragraphs_.size() >= 2 &&
 			 Paragraphs_.at(Paragraphs_.size() - 1).empty() &&
 			 Paragraphs_.at(Paragraphs_.size() - 2).empty())){
 		fflush(stdin);
-		getline(cin, Paragraph);
+		getline(wcin, Paragraph);
 		Paragraphs_.push_back(Paragraph);
 	}
 	if (Paragraphs_.size() >= 2){
@@ -55,29 +56,29 @@ void TextCrypt::SetParagraphs(){
 }
 
 void TextCrypt::SetParagraphsFromFile(string FileName){
-	string Paragraph;
+	wstring Paragraph;
 	InputFile_.open(FileName, ios::in);
 	if (InputFile_.is_open()){
-        cout << "Start reading file..." << endl;
+        wcout << "Start reading file..." << endl;
 		while (!(InputFile_.eof())){
 			getline(InputFile_, Paragraph);
 			Paragraphs_.push_back(Paragraph);
 		}
 		InputFile_.close();
-		cout << "Finish reading file..." << endl;
+		wcout << "Finish reading file..." << endl;
 	}
 	else{
-		cout << "Error: Unable to access file." << endl;
+		wcout << "Error: Unable to access file." << endl;
 	}
 }
 
 void TextCrypt::SetPassword(){
-	cout << "Password: ";
+	wcout << "Password: ";
 	do{
 		fflush(stdin);
-		getline(cin, Password_);
+		getline(wcin, Password_);
 		if (Password_.empty()){
-			cout << "Retry: ";
+			wcout << "Retry: ";
 		}
 	} while (Password_.empty());
 }
@@ -93,21 +94,21 @@ void TextCrypt::StandardizeParagraphs(){
 			}
 			if (!(Paragraphs_.empty())){
 				for (auto jt = it->begin(); jt != it->end(); jt++){
-					if (*jt == TAB){
-						*jt = ' ';
+					if (*jt == L'\t'){
+						*jt = L' ';
 					}
 				}
 				if (!(it->empty())){
-					while (it->back() == ' '){
+					while (it->back() == L' '){
 						it->erase(it->end() - 1);
 					}
-					while (it->front() == ' '){
+					while (it->front() == L' '){
 						it->erase(it->begin());
 					}
 					if (!(it->empty())){
 						for (auto jt = it->begin(); jt != it->end(); jt++){
-							if (*jt == ' ' && *(jt + 1) == ' '){
-								while (*(jt + 1) == ' '){
+							if (*jt == L' ' && *(jt + 1) == L' '){
+								while (*(jt + 1) == L' '){
 									it->erase(jt);
 								}
 							}
@@ -132,14 +133,14 @@ string TextCrypt::StandardizeFileName(string FileName){
 void TextCrypt::SeparateWords(){
 	for (auto it = Paragraphs_.begin(); it != Paragraphs_.end(); it++){
 		if (it->empty()){
-			Words_.push_back({""});
+			Words_.push_back({L""});
 		}
 		else{
-			vector<string> Word;
+			vector<wstring> Word;
 			int Beginning, Ending;
 			Beginning = 0;
 			for (unsigned int i = 0; i < it->size(); i++){
-				if (it->at(i) == ' '){
+				if (it->at(i) == L' '){
 					Ending = i;
 					Word.push_back(it->substr(Beginning, Ending - Beginning));
 					Beginning = Ending + 1;
@@ -152,14 +153,14 @@ void TextCrypt::SeparateWords(){
 }
 
 void TextCrypt::SetEncryptedParagraphs(){
-    cout << "Start encrypting..." << endl;
+    wcout << "Start encrypting..." << endl;
 	int GeneralKey = abs(int(Password_.back()) - int(Password_.front()));
 	for (auto it = Words_.begin(); it != Words_.end(); it++){
 		if (it->empty()){
-			EncryptedParagraphs_.push_back("");
+			EncryptedParagraphs_.push_back(L"");
 		}
 		else{
-			string EncryptedParagraph;
+			wstring EncryptedParagraph;
 			for (auto jt = it->begin(); jt != it->end(); jt++){
 				int Key = GeneralKey + jt->size();
 				while (Key > NumberOfTheEncryptable){
@@ -168,7 +169,7 @@ void TextCrypt::SetEncryptedParagraphs(){
 				if (Key == NumberOfTheEncryptable){
 					Key -= KeyAdjustment;
 				}
-				string EncryptedWord;
+				wstring EncryptedWord;
 				for (auto kt = jt->begin(); kt != jt->end(); kt++){
 					if ((*kt + Key) > LastCharacter){
 						*kt += (Key - NumberOfTheEncryptable);
@@ -179,24 +180,24 @@ void TextCrypt::SetEncryptedParagraphs(){
 					EncryptedWord.push_back(*kt);
 				}
 				EncryptedParagraph += EncryptedWord;
-				EncryptedParagraph.push_back(' ');
+				EncryptedParagraph.push_back(L' ');
 			}
 			EncryptedParagraph.pop_back();
 			EncryptedParagraphs_.push_back(EncryptedParagraph);
 		}
 	}
-	cout << "Finisih encrypting..." << endl;
+	wcout << "Finish encrypting..." << endl;
 }
 
 void TextCrypt::SetDecryptedParagraphs(){
-    cout << "Start decrypting..." << endl;
+    wcout << "Start decrypting..." << endl;
 	int GeneralKey = abs(int(Password_.back()) - int(Password_.front()));
 	for (auto it = Words_.begin(); it != Words_.end(); it++){
 		if (it->empty()){
-			DecryptedParagraphs_.push_back("");
+			DecryptedParagraphs_.push_back(L"");
 		}
 		else{
-			string DecryptedParagraph;
+			wstring DecryptedParagraph;
 			for (auto jt = it->begin(); jt != it->end(); jt++){
 				int Key = GeneralKey + jt->size();
 				while (Key > NumberOfTheEncryptable){
@@ -205,7 +206,7 @@ void TextCrypt::SetDecryptedParagraphs(){
 				if (Key == NumberOfTheEncryptable){
 					Key -= KeyAdjustment;
 				}
-				string DecryptedWord;
+				wstring DecryptedWord;
 				for (auto kt = jt->begin(); kt != jt->end(); kt++){
 					if ((*kt - Key) < FirstCharacter){
 						*kt -= (Key - NumberOfTheEncryptable);
@@ -216,28 +217,33 @@ void TextCrypt::SetDecryptedParagraphs(){
 					DecryptedWord.push_back(*kt);
 				}
 				DecryptedParagraph += DecryptedWord;
-				DecryptedParagraph.push_back(' ');
+				DecryptedParagraph.push_back(L' ');
 			}
 			DecryptedParagraph.pop_back();
 			DecryptedParagraphs_.push_back(DecryptedParagraph);
 		}
 	}
-	cout << "Finish decrypting..." << endl;
+	wcout << "Finish decrypting..." << endl;
 }
 
 void TextCrypt::SetHashedPassword(){
 	if (StatusOfParagraphs_ == Encrypting){
-		string SHA512HashedPassword = sha512(Password_);
+        string TemporaryPassword;
+        string TemporarySHA512HashedPassword;
+        wstring SHA512HashedPassword;
+        TemporaryPassword.assign(Password_.begin(), Password_.end());
+        TemporarySHA512HashedPassword = sha512(TemporaryPassword);
+        SHA512HashedPassword.assign(TemporarySHA512HashedPassword.begin(), TemporarySHA512HashedPassword.end());
 		int Beginning = 0;
 		for (unsigned int i = 0; i < 16; i++){
 			HashedPassword_ += SHA512HashedPassword.substr(Beginning, 8);
-			HashedPassword_.push_back(' ');
+			HashedPassword_.push_back(L' ');
 			Beginning += 8;
 		}
 		HashedPassword_.pop_back();
 		for (auto it = HashedPassword_.begin(); it != HashedPassword_.end(); it++){
 			const int Key = 8;
-			if (*it != ' '){
+			if (*it != L' '){
 				if ((*it + Key) > LastCharacter){
 					*it += (Key - NumberOfTheEncryptable);
 				}
@@ -255,7 +261,7 @@ void TextCrypt::SetHashedPassword(){
 
 bool TextCrypt::CheckPassword(){
 	for (auto it = HashedPassword_.begin(); it != HashedPassword_.end(); it++){
-		if (*it == ' '){
+		if (*it == L' '){
 			HashedPassword_.erase(it);
 		}
 	}
@@ -268,7 +274,11 @@ bool TextCrypt::CheckPassword(){
 			*it -= Key;
 		}
 	}
-	if (HashedPassword_ == sha512(Password_)){
+    string TemporaryHashedPassword;
+    string TemporaryPassword;
+    TemporaryHashedPassword.assign(HashedPassword_.begin(), HashedPassword_.end());
+    TemporaryPassword.assign(Password_.begin(), Password_.end());
+	if (TemporaryHashedPassword == sha512(TemporaryPassword)){
 		return true;
 	}
 	else{
@@ -296,15 +306,15 @@ bool TextCrypt::CheckHashedPassword(){
 
 void TextCrypt::PrintResult(){
 	if (StatusOfParagraphs_ == Encrypting){
-		cout << "Encrypted text:" << endl;
+		wcout << "Encrypted text:" << endl;
 		for (auto it = EncryptedParagraphs_.begin(); it != EncryptedParagraphs_.end(); it++){
-			cout << *it << endl;
+			wcout << *it << endl;
 		}
 	}
 	else{
-		cout << "Decrypted text:" << endl;
+		wcout << "Decrypted text:" << endl;
 		for (auto it = DecryptedParagraphs_.begin(); it != DecryptedParagraphs_.end(); it++){
-			cout << *it << endl;
+			wcout << *it << endl;
 		}
 	}
 }
@@ -321,11 +331,11 @@ void TextCrypt::PrintResultToFile(string FileName){
 					OutputFile_ << *it << endl;
 				}
 			}
-			cout << "Successfully encrypt that file..." << endl;
+			wcout << "Successfully encrypt that file..." << endl;
 			OutputFile_.close();
 		}
 		else{
-			cout << "Error: Unable to access file." << endl;
+			wcout << "Error: Unable to access file." << endl;
 		}
 	}
 	else{
@@ -338,11 +348,11 @@ void TextCrypt::PrintResultToFile(string FileName){
 					OutputFile_ << *it << endl;
 				}
 			}
-			cout << "Successfully decrypt that file..." << endl;
+			wcout << "Successfully decrypt that file..." << endl;
 			OutputFile_.close();
 		}
 		else{
-			cout << "Error: Unable to access file." << endl;
+			wcout << "Error: Unable to access file." << endl;
 		}
 	}
 }
@@ -359,37 +369,37 @@ TextCrypt::TextCrypt(){
 TextCrypt::TextCrypt(bool StatusOfParagraphs){
 	StatusOfParagraphs_ = StatusOfParagraphs;
 	if (StatusOfParagraphs_ == Encrypting){
-		cout << "Text:" << endl;
+		wcout << "Text:" << endl;
 		SetParagraphs();
 		StandardizeParagraphs();
 		if (CheckParagraphs() == false){
-			cout << "Error: Nothing needs encrypting." << endl;
+			wcout << "Error: Nothing needs encrypting." << endl;
 		}
 		else{
 			SetPassword();
 			SeparateWords();
 			SetEncryptedParagraphs();
 			SetHashedPassword();
-			EncryptedParagraphs_.back() += (' ' + HashedPassword_);
+			EncryptedParagraphs_.back() += (L' ' + HashedPassword_);
 			PrintResult();
 		}
 	}
 	else{
-		cout << "Encrypted text:" << endl;
+		wcout << "Encrypted text:" << endl;
 		SetParagraphs();
 		StandardizeParagraphs();
 		if (CheckParagraphs() == false){
-			cout << "Error: Nothing needs decrypting." << endl;
+			wcout << "Error: Nothing needs decrypting." << endl;
 		}
 		else{
 			if (CheckHashedPassword() == false){
-				cout << "Error: Lack of something." << endl;
+				wcout << "Error: Lack of something." << endl;
 			}
 			else{
 				SetHashedPassword();
 				SetPassword();
 				if (CheckPassword() == false){
-					cout << "Error: Wrong password." << endl;
+					wcout << "Error: Wrong password." << endl;
 				}
 				else{
 					SeparateWords();
@@ -408,14 +418,14 @@ TextCrypt::TextCrypt(bool StatusOfParagraphs, string FileName){
 		SetParagraphsFromFile(FileName);
 		StandardizeParagraphs();
 		if (CheckParagraphs() == false){
-			cout << "Error: Nothing needs encrypting." << endl;
+			wcout << "Error: Nothing needs encrypting." << endl;
 		}
 		else{
 			SetPassword();
 			SeparateWords();
 			SetEncryptedParagraphs();
 			SetHashedPassword();
-			EncryptedParagraphs_.back() += (' ' + HashedPassword_);
+			EncryptedParagraphs_.back() += (L' ' + HashedPassword_);
 			PrintResultToFile(FileName);
 		}
 	}
@@ -423,17 +433,17 @@ TextCrypt::TextCrypt(bool StatusOfParagraphs, string FileName){
 		SetParagraphsFromFile(FileName);
 		StandardizeParagraphs();
 		if (CheckParagraphs() == false){
-			cout << "Error: Nothing needs decrypting." << endl;
+			wcout << "Error: Nothing needs decrypting." << endl;
 		}
 		else{
 			if (CheckHashedPassword() == false){
-				cout << "Error: Lack of something." << endl;
+				wcout << "Error: Lack of something." << endl;
 			}
 			else{
 				SetHashedPassword();
 				SetPassword();
 				if (CheckPassword() == false){
-					cout << "Error: Wrong password." << endl;
+					wcout << "Error: Wrong password." << endl;
 				}
 				else{
 					SeparateWords();
@@ -454,20 +464,20 @@ TextCrypt::~TextCrypt(){
 	HashedPassword_.clear();
 }
 
-vector<string> TextCrypt::GetEncryptedParagraphs(){
+vector<wstring> TextCrypt::GetEncryptedParagraphs(){
 	if (StatusOfParagraphs_ == Encrypting){
 		return EncryptedParagraphs_;
 	}
 	else{
-		return {"Error: Access Denied."};
+		return {L"Error: Access Denied."};
 	}
 }
 
-vector<string> TextCrypt::GetDecryptedParagraphs(){
+vector<wstring> TextCrypt::GetDecryptedParagraphs(){
 	if (StatusOfParagraphs_ == Decrypting){
 		return DecryptedParagraphs_;
 	}
 	else{
-		return {"Error: Access Denied."};
+		return {L"Error: Access Denied."};
 	}
 }

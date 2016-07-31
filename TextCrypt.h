@@ -31,15 +31,15 @@ using namespace std;
 
 class TextCrypt{
 private:
-    vector<string> Paragraphs_;
-    vector<string> EncryptedParagraphs_;
-    vector<string> DecryptedParagraphs_;
-    vector<vector<string>> Words_;
-    string Password_;
-    string HashedPassword_;
+    vector<wstring> Paragraphs_;
+    vector<wstring> EncryptedParagraphs_;
+    vector<wstring> DecryptedParagraphs_;
+    vector<vector<wstring>> Words_;
+    wstring Password_;
+    wstring HashedPassword_;
     bool StatusOfParagraphs_;
-    ifstream InputFile_;
-    ofstream OutputFile_;
+    wifstream InputFile_;
+    wofstream OutputFile_;
     void SetParagraphs();
     void SetParagraphsFromFile(string FileName);
     void SetPassword();
@@ -60,8 +60,8 @@ public:
     TextCrypt(bool StatusOfParagraphs);
     TextCrypt(bool StatusOfParagraphs, string FileName);
     ~TextCrypt();
-    vector<string> GetEncryptedParagraphs();
-    vector<string> GetDecryptedParagraphs();
+    vector<wstring> GetEncryptedParagraphs();
+    vector<wstring> GetDecryptedParagraphs();
 };
 
 #endif // TEXTCRYPT_H_INCLUDED
