@@ -2,10 +2,6 @@
  * TextCrypt Copyright (C) 2016 Huan Pham
  * All rights reserved.
  *
- * The algorithm to encrypt texts provided by this library
- * should be altered before it is used personally due to
- * security purposes.
- *
  * This file is part of TextCrypt.
  *
  * TextCrypt is free software: you can redistribute it and/or modify
